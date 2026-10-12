@@ -1,0 +1,191 @@
+name: gso_scale
+data_root: data/gso_scale
+results_root: results/gso_scale
+resolution: 512
+num_views: 24
+samples: 24
+objects:
+- threshold_porcelain_spoon_rest_white
+- threshold_tray_rectangle_porcelain
+- bia_cordon_porcelain_utensil_holder_900028
+- threshold_salad_plate_square_rim_porcelain
+- bia_porcelain_rim_35_45_cup
+- calphalon_kitchen_iron_fry_pan_black
+- chef_style_pan_9_inch_pan
+- threshold_ramekin_white_porcelain
+- room_essentials_mug_white_yellow
+- room_essentials_bowl_turquiose
+- room_essentials_salad_plate_turquoise
+- kotobuki_saucer_dragon_fly
+- utana_5_porcelain_ramekin_large
+- ecoforms_plant_plate_s11turquoise
+- ecoforms_plant_container_urn_san
+- ecoforms_cup_b4_san
+- threshold_bistro_dinner_plate_ruby_ring
+- ecoforms_plant_container_s14turquoise
+- footed_bowl_sand
+- nordic_ware_original_bundt_pan
+- 45oz_ramekin_asst_deep_colors
+- chefmate_8_frypan
+- ocedar_snap_pan_brush_1_ct
+- ecoforms_planter_bowl_cole_hardware
+held_out:
+- bia_cordon_porcelain_utensil_holder_900028
+- bia_porcelain_rim_35_45_cup
+- chef_style_pan_9_inch_pan
+- room_essentials_salad_plate_turquoise
+- kotobuki_saucer_dragon_fly
+- footed_bowl_sand
+- chefmate_8_frypan
+- ocedar_snap_pan_brush_1_ct
+patterns:
+- P0
+- P4
+alpha: 0.4
+scale: medium
+seed: 0
+assets:
+  threshold_porcelain_spoon_rest_white:
+    fuel_name: Threshold_Porcelain_Spoon_Rest_White
+    mesh: data/gso_assets/threshold_porcelain_spoon_rest_white/model.obj
+    texture: data/gso_assets/threshold_porcelain_spoon_rest_white/texture.png
+    family: utensil
+    weakness: 3.3685
+  threshold_tray_rectangle_porcelain:
+    fuel_name: Threshold_Tray_Rectangle_Porcelain
+    mesh: data/gso_assets/threshold_tray_rectangle_porcelain/model.obj
+    texture: data/gso_assets/threshold_tray_rectangle_porcelain/texture.png
+    family: tray
+    weakness: 3.613
+  bia_cordon_porcelain_utensil_holder_900028:
+    fuel_name: BIA_Cordon_Bleu_White_Porcelain_Utensil_Holder_900028
+    mesh: data/gso_assets/bia_cordon_porcelain_utensil_holder_900028/model.obj
+    texture: data/gso_assets/bia_cordon_porcelain_utensil_holder_900028/texture.png
+    family: bin
+    weakness: 4.0856
+  threshold_salad_plate_square_rim_porcelain:
+    fuel_name: Threshold_Salad_Plate_Square_Rim_Porcelain
+    mesh: data/gso_assets/threshold_salad_plate_square_rim_porcelain/model.obj
+    texture: data/gso_assets/threshold_salad_plate_square_rim_porcelain/texture.png
+    family: plate
+    weakness: 4.8175
+  bia_porcelain_rim_35_45_cup:
+    fuel_name: BIA_Porcelain_Ramekin_With_Glazed_Rim_35_45_oz_cup
+    mesh: data/gso_assets/bia_porcelain_rim_35_45_cup/model.obj
+    texture: data/gso_assets/bia_porcelain_rim_35_45_cup/texture.png
+    family: mug
+    weakness: 4.8614
+  calphalon_kitchen_iron_fry_pan_black:
+    fuel_name: Calphalon_Kitchen_Essentials_12_Cast_Iron_Fry_Pan_Black
+    mesh: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/model.obj
+    texture: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/texture.png
+    family: other
+    weakness: 5.3739
+  chef_style_pan_9_inch_pan:
+    fuel_name: Chef_Style_Round_Cake_Pan_9_inch_pan
+    mesh: data/gso_assets/chef_style_pan_9_inch_pan/model.obj
+    texture: data/gso_assets/chef_style_pan_9_inch_pan/texture.png
+    family: other
+    weakness: 6.5473
+  threshold_ramekin_white_porcelain:
+    fuel_name: Threshold_Ramekin_White_Porcelain
+    mesh: data/gso_assets/threshold_ramekin_white_porcelain/model.obj
+    texture: data/gso_assets/threshold_ramekin_white_porcelain/texture.png
+    family: bowl
+    weakness: 7.0676
+  room_essentials_mug_white_yellow:
+    fuel_name: Room_Essentials_Mug_White_Yellow
+    mesh: data/gso_assets/room_essentials_mug_white_yellow/model.obj
+    texture: data/gso_assets/room_essentials_mug_white_yellow/texture.png
+    family: mug
+    weakness: 7.4396
+  room_essentials_bowl_turquiose:
+    fuel_name: Room_Essentials_Bowl_Turquiose
+    mesh: data/gso_assets/room_essentials_bowl_turquiose/model.obj
+    texture: data/gso_assets/room_essentials_bowl_turquiose/texture.png
+    family: bowl
+    weakness: 7.4675
+  room_essentials_salad_plate_turquoise:
+    fuel_name: Room_Essentials_Salad_Plate_Turquoise
+    mesh: data/gso_assets/room_essentials_salad_plate_turquoise/model.obj
+    texture: data/gso_assets/room_essentials_salad_plate_turquoise/texture.png
+    family: plate
+    weakness: 8.0619
+  kotobuki_saucer_dragon_fly:
+    fuel_name: Kotobuki_Saucer_Dragon_Fly
+    mesh: data/gso_assets/kotobuki_saucer_dragon_fly/model.obj
+    texture: data/gso_assets/kotobuki_saucer_dragon_fly/texture.png
+    family: plate
+    weakness: 8.1247
+  utana_5_porcelain_ramekin_large:
+    fuel_name: Utana_5_Porcelain_Ramekin_Large
+    mesh: data/gso_assets/utana_5_porcelain_ramekin_large/model.obj
+    texture: data/gso_assets/utana_5_porcelain_ramekin_large/texture.png
+    family: bowl
+    weakness: 8.4546
+  ecoforms_plant_plate_s11turquoise:
+    fuel_name: Ecoforms_Plant_Plate_S11Turquoise
+    mesh: data/gso_assets/ecoforms_plant_plate_s11turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_plate_s11turquoise/texture.png
+    family: plate
+    weakness: 8.7277
+  ecoforms_plant_container_urn_san:
+    fuel_name: Ecoforms_Plant_Container_URN_SAN
+    mesh: data/gso_assets/ecoforms_plant_container_urn_san/model.obj
+    texture: data/gso_assets/ecoforms_plant_container_urn_san/texture.png
+    family: bin
+    weakness: 9.3184
+  ecoforms_cup_b4_san:
+    fuel_name: Ecoforms_Cup_B4_SAN
+    mesh: data/gso_assets/ecoforms_cup_b4_san/model.obj
+    texture: data/gso_assets/ecoforms_cup_b4_san/texture.png
+    family: mug
+    weakness: 9.3763
+  threshold_bistro_dinner_plate_ruby_ring:
+    fuel_name: Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring
+    mesh: data/gso_assets/threshold_bistro_dinner_plate_ruby_ring/model.obj
+    texture: data/gso_assets/threshold_bistro_dinner_plate_ruby_ring/texture.png
+    family: plate
+    weakness: 9.6004
+  ecoforms_plant_container_s14turquoise:
+    fuel_name: Ecoforms_Plant_Container_S14Turquoise
+    mesh: data/gso_assets/ecoforms_plant_container_s14turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_container_s14turquoise/texture.png
+    family: bin
+    weakness: 9.8116
+  footed_bowl_sand:
+    fuel_name: Footed_Bowl_Sand
+    mesh: data/gso_assets/footed_bowl_sand/model.obj
+    texture: data/gso_assets/footed_bowl_sand/texture.png
+    family: bowl
+    weakness: 10.084
+  nordic_ware_original_bundt_pan:
+    fuel_name: Nordic_Ware_Original_Bundt_Pan
+    mesh: data/gso_assets/nordic_ware_original_bundt_pan/model.obj
+    texture: data/gso_assets/nordic_ware_original_bundt_pan/texture.png
+    family: other
+    weakness: 10.476
+  45oz_ramekin_asst_deep_colors:
+    fuel_name: 45oz_RAMEKIN_ASST_DEEP_COLORS
+    mesh: data/gso_assets/45oz_ramekin_asst_deep_colors/model.obj
+    texture: data/gso_assets/45oz_ramekin_asst_deep_colors/texture.png
+    family: bowl
+    weakness: 11.4931
+  chefmate_8_frypan:
+    fuel_name: Chefmate_8_Frypan
+    mesh: data/gso_assets/chefmate_8_frypan/model.obj
+    texture: data/gso_assets/chefmate_8_frypan/texture.png
+    family: other
+    weakness: 12.8253
+  ocedar_snap_pan_brush_1_ct:
+    fuel_name: Ocedar_Snap_On_Dust_Pan_And_Brush_1_ct
+    mesh: data/gso_assets/ocedar_snap_pan_brush_1_ct/model.obj
+    texture: data/gso_assets/ocedar_snap_pan_brush_1_ct/texture.png
+    family: other
+    weakness: 12.8499
+  ecoforms_planter_bowl_cole_hardware:
+    fuel_name: Ecoforms_Planter_Bowl_Cole_Hardware
+    mesh: data/gso_assets/ecoforms_planter_bowl_cole_hardware/model.obj
+    texture: data/gso_assets/ecoforms_planter_bowl_cole_hardware/texture.png
+    family: bowl
+    weakness: 11.8369

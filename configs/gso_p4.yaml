@@ -1,0 +1,32 @@
+name: gso_p4
+data_root: data/gso_p4
+results_root: results/gso_p4
+resolution: 512
+num_views: 24
+samples: 24
+objects: [mug, serving_bowl, plate, pitcher, teapot]
+patterns: [P0, P4]
+alpha: 0.40
+scale: medium
+seed: 0
+assets:
+  mug:
+    fuel_name: Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White
+    mesh: data/gso_assets/mug/model.obj
+    texture: data/gso_assets/mug/texture.png
+  serving_bowl:
+    fuel_name: Threshold_Porcelain_Serving_Bowl_Coupe_White
+    mesh: data/gso_assets/serving_bowl/model.obj
+    texture: data/gso_assets/serving_bowl/texture.png
+  plate:
+    fuel_name: Threshold_Dinner_Plate_Square_Rim_White_Porcelain
+    mesh: data/gso_assets/plate/model.obj
+    texture: data/gso_assets/plate/texture.png
+  pitcher:
+    fuel_name: Threshold_Porcelain_Pitcher_White
+    mesh: data/gso_assets/pitcher/model.obj
+    texture: data/gso_assets/pitcher/texture.png
+  teapot:
+    fuel_name: Threshold_Porcelain_Teapot_White
+    mesh: data/gso_assets/teapot/model.obj
+    texture: data/gso_assets/teapot/texture.png

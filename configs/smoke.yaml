@@ -1,0 +1,11 @@
+name: smoke
+data_root: data/smoke
+results_root: results/smoke
+resolution: 512
+num_views: 24
+samples: 24
+objects: [box, bottle, bowl]
+patterns: [P0, P1, P2, P3, P4, P5, P6]
+alpha: 0.40
+scale: medium
+seed: 0

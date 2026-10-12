@@ -1,0 +1,72 @@
+name: gso_proj
+data_root: data/gso_proj
+results_root: results/gso_proj
+reuse_from: data/gso_scale
+resolution: 512
+num_views: 24
+samples: 24
+# P0 failed SfM on these; P4 albedo-oracle recovered some or all views.
+objects:
+- calphalon_kitchen_iron_fry_pan_black
+- chef_style_pan_9_inch_pan
+- ecoforms_plant_container_s14turquoise
+- threshold_tray_rectangle_porcelain
+- ecoforms_plant_plate_s11turquoise
+patterns:
+- P0
+- P4
+- P4P
+alpha: 0.4
+scale: medium
+seed: 0
+# Frozen 3-light recipe from the first projector gate.
+projector_count: 3
+projector_energy: 160.0
+projector_spot_deg: 55.0
+projector_elevation_deg: 28.0
+projector_scale: 36.0
+projector_env_scale: 0.65
+projector_contrast_lo: 0.22
+projector_contrast_hi: 0.78
+projector_gain: 0.45
+assets:
+  calphalon_kitchen_iron_fry_pan_black:
+    fuel_name: Calphalon_Kitchen_Essentials_12_Cast_Iron_Fry_Pan_Black
+    mesh: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/model.obj
+    texture: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/texture.png
+    family: pan
+    weakness: 5.3739
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.708333
+  chef_style_pan_9_inch_pan:
+    fuel_name: Chef_Style_Round_Cake_Pan_9_inch_pan
+    mesh: data/gso_assets/chef_style_pan_9_inch_pan/model.obj
+    texture: data/gso_assets/chef_style_pan_9_inch_pan/texture.png
+    family: pan
+    weakness: 6.5473
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.666667
+  ecoforms_plant_container_s14turquoise:
+    fuel_name: Ecoforms_Plant_Container_S14Turquoise
+    mesh: data/gso_assets/ecoforms_plant_container_s14turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_container_s14turquoise/texture.png
+    family: pot
+    weakness: 9.8116
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.666667
+  threshold_tray_rectangle_porcelain:
+    fuel_name: Threshold_Tray_Rectangle_Porcelain
+    mesh: data/gso_assets/threshold_tray_rectangle_porcelain/model.obj
+    texture: data/gso_assets/threshold_tray_rectangle_porcelain/texture.png
+    family: tray
+    weakness: 3.613
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.583333
+  ecoforms_plant_plate_s11turquoise:
+    fuel_name: Ecoforms_Plant_Plate_S11Turquoise
+    mesh: data/gso_assets/ecoforms_plant_plate_s11turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_plate_s11turquoise/texture.png
+    family: plate
+    weakness: 8.7277
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.375

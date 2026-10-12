@@ -1,0 +1,17 @@
+alpha: 0.40
+scale: medium
+seed: 0
+p1_sigma: 0.18
+scales:
+  coarse: 12.0
+  medium: 24.0
+  fine: 48.0
+variants:
+  - {id: P0, name: P0_plain}
+  - {id: P1, name: P1_frame_noise}
+  - {id: P2, name: P2_grid}
+  - {id: P3, name: P3_random_dots}
+  - {id: P4, name: P4_speckle}
+  - {id: P5, name: P5_multiscale}
+  - {id: P6, name: P6_hash}
+  - {id: P4P, name: P4_projector}

@@ -1,0 +1,12 @@
+name: pairs_p4
+source_experiment: configs/gso_scale.yaml
+sfm_metrics: results/gso_scale/sfm_metrics.csv
+dense_metrics: results/gso_scale/dense_metrics.csv
+output_root: data/pairs_p4
+x_pattern: P0
+y_pattern: P4
+# P0 registered nothing; P4 registered at least 8 of 24 views.
+p0_max_registered: 0
+p4_min_registered: 8
+strong_min_registration_ratio: 0.5
+note: "Small pair batch. x = original albedo, y = P4 albedo overlay, same GT cameras. Projector renders are not included."

@@ -1,0 +1,32 @@
+blender_exe: D:/blender/blender-5.2.2-windows-x64/blender.exe
+engine: CYCLES
+device: GPU
+samples: 24
+resolution: 512
+num_views: 24
+azimuth_span_deg: 300.0
+radius: 2.55
+elevation_deg: 18.0
+elevation_amp_deg: 10.0
+lens_mm: 50.0
+sensor_width_mm: 36.0
+world_gray: 0.22
+key_light_energy: 180.0
+fill_light_energy: 70.0
+clip_start: 0.15
+clip_end: 20.0
+projector_count: 8
+projector_energy: 100.0
+projector_spot_deg: 48.0
+projector_radius: 2.2
+projector_elevation_deg: 50.0
+projector_elevation_low_deg: 6.0
+projector_scale: 36.0
+projector_env_scale: 0.45
+projector_contrast_lo: 0.40
+projector_contrast_hi: 0.60
+projector_gain: 0.85
+objects:
+  - box
+  - bottle
+  - bowl

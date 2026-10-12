@@ -1,0 +1,74 @@
+name: gso_proj8
+data_root: data/gso_proj8
+results_root: results/gso_proj8
+reuse_from: data/gso_proj
+note: "P4P v2: 6 low + 2 high speckle spots, higher gobo contrast. P0/P4 reused from the 3-light run."
+resolution: 512
+num_views: 24
+samples: 24
+# P0 failed SfM on these; P4 albedo-oracle recovered some or all views.
+objects:
+- calphalon_kitchen_iron_fry_pan_black
+- chef_style_pan_9_inch_pan
+- ecoforms_plant_container_s14turquoise
+- threshold_tray_rectangle_porcelain
+- ecoforms_plant_plate_s11turquoise
+patterns:
+- P0
+- P4
+- P4P
+alpha: 0.4
+scale: medium
+seed: 0
+# Two rings: 6 lamps near the horizon for walls, 2 high lamps for tops.
+projector_count: 8
+projector_energy: 100.0
+projector_spot_deg: 48.0
+projector_elevation_deg: 50.0
+projector_elevation_low_deg: 6.0
+projector_scale: 36.0
+projector_env_scale: 0.45
+projector_contrast_lo: 0.40
+projector_contrast_hi: 0.60
+projector_gain: 0.85
+assets:
+  calphalon_kitchen_iron_fry_pan_black:
+    fuel_name: Calphalon_Kitchen_Essentials_12_Cast_Iron_Fry_Pan_Black
+    mesh: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/model.obj
+    texture: data/gso_assets/calphalon_kitchen_iron_fry_pan_black/texture.png
+    family: pan
+    weakness: 5.3739
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.708333
+  chef_style_pan_9_inch_pan:
+    fuel_name: Chef_Style_Round_Cake_Pan_9_inch_pan
+    mesh: data/gso_assets/chef_style_pan_9_inch_pan/model.obj
+    texture: data/gso_assets/chef_style_pan_9_inch_pan/texture.png
+    family: pan
+    weakness: 6.5473
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.666667
+  ecoforms_plant_container_s14turquoise:
+    fuel_name: Ecoforms_Plant_Container_S14Turquoise
+    mesh: data/gso_assets/ecoforms_plant_container_s14turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_container_s14turquoise/texture.png
+    family: pot
+    weakness: 9.8116
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.666667
+  threshold_tray_rectangle_porcelain:
+    fuel_name: Threshold_Tray_Rectangle_Porcelain
+    mesh: data/gso_assets/threshold_tray_rectangle_porcelain/model.obj
+    texture: data/gso_assets/threshold_tray_rectangle_porcelain/texture.png
+    family: tray
+    weakness: 3.613
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.583333
+  ecoforms_plant_plate_s11turquoise:
+    fuel_name: Ecoforms_Plant_Plate_S11Turquoise
+    mesh: data/gso_assets/ecoforms_plant_plate_s11turquoise/model.obj
+    texture: data/gso_assets/ecoforms_plant_plate_s11turquoise/texture.png
+    family: plate
+    weakness: 8.7277
+    scale_p0_reg: 0.0
+    scale_p4_reg: 0.375

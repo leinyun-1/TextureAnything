@@ -1,0 +1,75 @@
+# Object-level sources that can enter the pair factory.
+# A source is usable when it has a renderable surface and a license that allows training use.
+# Survey date: 2026-10-08. Bulk files go to D: so the repo disk stays small.
+
+root: D:/TextureAnything/datasets
+
+sources:
+  - id: gso
+    name: Google Scanned Objects
+    status: active
+    license: CC-BY-4.0
+    objects: 1030
+    kind: real_scan
+    albedo: uv_texture
+    local: data/gso_assets
+    note: Adapter already in the pair factory. Full catalog is screened with L1/L2 before new meshes are kept.
+
+  - id: abo
+    name: Amazon Berkeley Objects
+    status: downloaded
+    license: CC-BY-4.0
+    objects: 7953
+    kind: product_gltf
+    albedo: pbr_texture
+    size_gb: 154
+    listings_url: https://amazon-berkeley-objects.s3.amazonaws.com/archives/abo-listings.tar
+    models_url: https://amazon-berkeley-objects.s3.amazonaws.com/archives/abo-3dmodels.tar
+    local: D:/TextureAnything/datasets/abo
+    note: 3D models are glTF with 4K textures. Listings metadata is the filter index. Images and spins are not downloaded.
+
+  - id: omniobject3d
+    name: OmniObject3D
+    status: blocked
+    license: CC-BY-4.0
+    objects: 6000
+    kind: real_scan
+    albedo: scan_jpg
+    size_tb: 1.2
+    note: Full release needs an OpenXLab login and about 1.2 TB, mostly video and renders. Only raw_scans (Scan.obj + Scan.jpg) would enter the factory, after a login is available.
+
+  - id: 3d_future
+    name: 3D-FUTURE
+    status: deferred
+    license: research_only_no_redistribution
+    objects: 9992
+    kind: furniture_cad
+    albedo: highres_texture
+    note: Tianchi account required. License forbids redistribution and commercial use of derivatives. Not mirrored.
+
+  - id: shapenet_core
+    name: ShapeNetCore
+    status: deferred
+    license: custom_terms
+    objects: 51000
+    kind: synthetic_cad
+    albedo: partial_lowres
+    note: Download requires accepting ShapeNet terms. Texture coverage is uneven. Not mirrored until the terms are accepted.
+
+  - id: objaverse
+    name: Objaverse
+    status: metadata_first
+    license: per_object_creative_commons
+    objects: 818000
+    kind: mixed
+    albedo: partial
+    note: Do not mirror the full set. A later pass should keep only CC-distributable objects that actually have textures.
+
+  - id: texverse
+    name: TexVerse
+    status: metadata_first
+    license: per_object_creative_commons
+    objects: 858669
+    kind: mixed
+    albedo: highres_texture
+    note: High-resolution textured subset of Sketchfab-scale data. Metadata and license filter come before any bulk download.
