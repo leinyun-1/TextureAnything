@@ -18,12 +18,11 @@ from pathlib import Path
 
 import numpy as np
 
-from config_utils import ROOT, load_configs
+from config_utils import ABO_MODELS, ABO_QUEUE, ABO_ROOT, HDRI_DIR, ROOT, load_configs
 from render_dataset import render_variant
 
-QUEUE = Path(r"D:\TextureAnything\datasets\abo\p0_queue.json")
-RENDER_ROOT = Path(r"D:\TextureAnything\datasets\abo\renders_black")
-HDRI_DIR = Path(r"D:\TextureAnything\datasets\hdri")
+QUEUE = ABO_QUEUE
+RENDER_ROOT = ABO_ROOT / "renders_black"
 
 HDRI_NAMES = (
     "hotel_room",
@@ -93,10 +92,7 @@ def resolve_glb(item: dict, models_dir: Path) -> str:
     candidate = models_dir / f"{item['id']}.glb"
     if candidate.exists():
         return str(candidate)
-    stored = Path(item["glb"])
-    if stored.exists():
-        return str(stored)
-    raise FileNotFoundError(f"missing glb for {item['id']}: {candidate}")
+    raise FileNotFoundError(f"missing glb for {item['id']}: {candidate} (run scripts/fetch_data.py abo)")
 
 
 def resolve_hdri(spec: dict, hdri_dir: Path) -> str:
@@ -113,13 +109,13 @@ def sample_pair(object_id: str, hdris: list[Path]) -> dict:
     seed = int(hashlib.sha256(object_id.encode("utf-8")).hexdigest()[:8], 16)
     rng = np.random.default_rng(seed)
     lens = float(rng.uniform(34.0, 52.0))
-    frac = float(rng.uniform(0.50, 0.66))
-    fx = lens / 36.0 * WIDTH
-    radius = float(np.clip(fx / (frac * HEIGHT), 2.2, 5.4))
+    frame_fill = float(rng.uniform(0.80, 0.90))
     return {
         "id": object_id,
         "lens_mm": round(lens, 2),
-        "radius": round(radius, 3),
+        "radius": 3.0,
+        "frame_fill": round(frame_fill, 3),
+        "framing": "longest_edge_vs_height_0.8_0.9",
         "azimuth_span_deg": round(float(rng.uniform(140.0, 300.0)), 2),
         "azimuth_start_deg": round(float(rng.uniform(0.0, 360.0)), 2),
         "elevation_deg": round(float(rng.uniform(10.0, 32.0)), 2),
@@ -127,7 +123,6 @@ def sample_pair(object_id: str, hdris: list[Path]) -> dict:
         "hdri": str(hdris[int(rng.integers(0, len(hdris)))]),
         "hdri_rotation_deg": round(float(rng.uniform(0.0, 360.0)), 2),
         "hdri_strength": 1.0,
-        "height_frac_target": round(frac, 3),
         "resolution_x": WIDTH,
         "resolution_y": HEIGHT,
         "num_views": NUM_VIEWS,
@@ -142,6 +137,7 @@ def spec_current(spec: dict) -> bool:
         int(spec.get("resolution_x", 0)) == WIDTH
         and int(spec.get("resolution_y", 0)) == HEIGHT
         and int(spec.get("num_views", 0)) == NUM_VIEWS
+        and spec.get("framing") == "longest_edge_vs_height_0.8_0.9"
     )
 
 
@@ -165,7 +161,7 @@ def main():
     queue = args.queue
     render_root = args.render_root
     hdri_dir = args.hdri_dir
-    models_dir = args.models_dir or (queue.parent / "models")
+    models_dir = args.models_dir or ABO_MODELS
     items = json.loads(queue.read_text(encoding="utf-8"))["items"]
     if args.ids:
         wanted = set(args.ids)
@@ -215,6 +211,9 @@ def main():
             "hdri_rotation_deg": spec["hdri_rotation_deg"],
             "hdri_strength": spec["hdri_strength"],
             "denoise": True,
+            "rgb_only": True,
+            "engine": "BLENDER_EEVEE",
+            "frame_fill": spec["frame_fill"],
             "resolution_x": WIDTH,
             "resolution_y": HEIGHT,
         }

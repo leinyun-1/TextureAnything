@@ -15,6 +15,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from config_utils import ABO_ROOT
 from select_gso_weak import weakness_score
 
 JSON_CHUNK = 0x4E4F534A
@@ -96,8 +97,8 @@ def load_done(path: Path) -> set[str]:
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--tar", default=r"D:\TextureAnything\datasets\abo\abo-3dmodels.tar")
-    p.add_argument("--out", default=r"D:\TextureAnything\datasets\abo\albedo_scores.jsonl")
+    p.add_argument("--tar", default=str(ABO_ROOT / "abo-3dmodels.tar"))
+    p.add_argument("--out", default=str(ABO_ROOT / "albedo_scores.jsonl"))
     p.add_argument("--max_sat", type=float, default=0.28)
     p.add_argument("--max_grad", type=float, default=14.0)
     return p.parse_args()

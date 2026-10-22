@@ -12,11 +12,11 @@ import traceback
 from argparse import Namespace
 from pathlib import Path
 
-from config_utils import ROOT, load_configs
+from config_utils import ABO_MODELS, ABO_QUEUE, ABO_ROOT, ROOT, load_configs
 from render_dataset import render_variant
 
-QUEUE = Path(r"D:\TextureAnything\datasets\abo\p0_queue.json")
-RENDER_ROOT = Path(r"D:\TextureAnything\datasets\abo\renders")
+QUEUE = ABO_QUEUE
+RENDER_ROOT = ABO_ROOT / "renders"
 
 
 def ready(scene: Path) -> bool:
@@ -58,7 +58,7 @@ def main():
                 item["id"],
                 "P4",
                 p4,
-                mesh=item["glb"],
+                mesh=str(ABO_MODELS / f"{item['id']}.glb"),
             )
             done += 1
             print(f"[abo-p4] rendered {item['id']} ({done} new, {skipped} skipped)", flush=True)

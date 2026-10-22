@@ -1,4 +1,8 @@
-"""Extract ABO models that passed the albedo screen and are rigid household objects."""
+"""Extract ABO models that passed the albedo screen and are rigid household objects.
+
+Rebuilds manifests/abo_queue.json from the full archive. Other machines only need
+scripts/fetch_data.py, which downloads the models already listed there.
+"""
 from __future__ import annotations
 
 import gzip
@@ -6,11 +10,13 @@ import json
 import tarfile
 from pathlib import Path
 
-SCORES = Path(r"D:\TextureAnything\datasets\abo\albedo_scores.jsonl")
-LISTINGS = Path(r"D:\TextureAnything\datasets\abo\listings\metadata")
-ARCHIVE = Path(r"D:\TextureAnything\datasets\abo\abo-3dmodels.tar")
-MODEL_ROOT = Path(r"D:\TextureAnything\datasets\abo\models")
-QUEUE = Path(r"D:\TextureAnything\datasets\abo\p0_queue.json")
+from config_utils import ABO_MODELS, ABO_QUEUE, ABO_ROOT
+
+SCORES = ABO_ROOT / "albedo_scores.jsonl"
+LISTINGS = ABO_ROOT / "listings" / "metadata"
+ARCHIVE = ABO_ROOT / "abo-3dmodels.tar"
+MODEL_ROOT = ABO_MODELS
+QUEUE = ABO_QUEUE
 
 DENY_TYPES = {
     "PILLOW",
@@ -81,13 +87,27 @@ def main():
                 src = tar.extractfile(member)
                 dest.write_bytes(src.read())
                 extracted += 1
-            keep[item_id]["glb"] = str(dest)
+            keep[item_id]["member"] = member.name
             if extracted and extracted % 100 == 0:
                 print(f"[abo] extracted {extracted}", flush=True)
-    missing = [item_id for item_id, row in keep.items() if "glb" not in row]
-    queue = [row for row in keep.values() if "glb" in row]
+    missing = [item_id for item_id, row in keep.items() if "member" not in row]
+    queue = [row for row in keep.values() if "member" in row]
     queue.sort(key=lambda row: row.get("weakness", 99))
-    QUEUE.write_text(json.dumps({"count": len(queue), "missing": missing, "items": queue}, indent=2), encoding="utf-8")
+    QUEUE.parent.mkdir(parents=True, exist_ok=True)
+    QUEUE.write_text(
+        json.dumps(
+            {
+                "source": "ABO 3D models, CC-BY-4.0",
+                "url_base": "https://amazon-berkeley-objects.s3.amazonaws.com/",
+                "count": len(queue),
+                "missing": missing,
+                "items": queue,
+            },
+            indent=1,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     print(f"[abo] queue={len(queue)} missing={len(missing)} -> {QUEUE}", flush=True)
 
 

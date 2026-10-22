@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import struct
 from pathlib import Path
 
 import numpy as np
@@ -119,6 +120,9 @@ def pick_largest_model(sparse_dir: Path) -> Path | None:
         if txt.exists():
             return sum(1 for ln in txt.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.startswith("#")) // 2
         bin_path = model / "images.bin"
-        return bin_path.stat().st_size if bin_path.exists() else 0
+        if not bin_path.exists():
+            return 0
+        with open(bin_path, "rb") as f:
+            return struct.unpack("<Q", f.read(8))[0]
 
     return max(candidates, key=n_images)

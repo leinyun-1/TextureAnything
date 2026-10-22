@@ -28,6 +28,17 @@ PATTERN_NAMES = {
     "P4P": "P4_projector",
 }
 
+# base=None keeps the asset's own albedo. abo_pbr keeps the glTF material untouched.
+MATERIAL_PRESETS = {
+    "matte": {"base": None, "metallic": 0.0, "roughness": 0.88, "specular": 0.05, "coat": 0.0},
+    "glossy": {"base": None, "metallic": 0.0, "roughness": 0.08, "specular": 0.5, "coat": 1.0},
+    "abo_pbr": None,
+    "white_matte": {"base": (0.82, 0.82, 0.80), "metallic": 0.0, "roughness": 0.88, "specular": 0.05, "coat": 0.0},
+    "white_glaze": {"base": (0.82, 0.82, 0.80), "metallic": 0.0, "roughness": 0.05, "specular": 0.5, "coat": 1.0},
+    "chrome": {"base": (0.95, 0.95, 0.95), "metallic": 1.0, "roughness": 0.03, "specular": 0.5, "coat": 0.0},
+    "brushed_metal": {"base": (0.85, 0.84, 0.82), "metallic": 1.0, "roughness": 0.25, "specular": 0.5, "coat": 0.0},
+}
+
 
 def parse_args():
     argv = sys.argv
@@ -79,6 +90,15 @@ def parse_args():
     p.add_argument("--projector_contrast_hi", type=float, default=0.60)
     p.add_argument("--projector_gain", type=float, default=0.85)
     p.add_argument("--write_geometry", action="store_true")
+    p.add_argument("--rgb_only", action="store_true")
+    p.add_argument("--frame_fill", type=float, default=0.0)
+    p.add_argument("--material", default="", choices=["", *MATERIAL_PRESETS])
+    p.add_argument("--raytrace", action="store_true")
+    p.add_argument("--speckle", action="store_true")
+    p.add_argument("--speckle_scale", type=float, default=28.0)
+    p.add_argument("--speckle_threshold", type=float, default=0.08)
+    p.add_argument("--taa_samples", type=int, default=16)
+    p.add_argument("--probe_resolution", default="2048", choices=["512", "1024", "2048", "4096"])
     return p.parse_args(argv)
 
 
@@ -254,6 +274,99 @@ def simplify_to_matte_albedo(obj):
             nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
         else:
             bsdf.inputs["Base Color"].default_value = factor
+
+
+def apply_material_preset(obj, name: str):
+    preset = MATERIAL_PRESETS[name]
+    if preset is None:
+        print(f"[render] material={name} (glTF materials kept)", flush=True)
+        return
+    if not obj.data.materials:
+        obj.data.materials.append(bpy.data.materials.new("preset"))
+    for mat in obj.data.materials:
+        if mat is None:
+            continue
+        mat.use_nodes = True
+        image, factor = _basecolor_source(mat)
+        nt = mat.node_tree
+        for node in list(nt.nodes):
+            nt.nodes.remove(node)
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+        bsdf.inputs["Metallic"].default_value = preset["metallic"]
+        bsdf.inputs["Roughness"].default_value = preset["roughness"]
+        bsdf.inputs["Specular IOR Level"].default_value = preset["specular"]
+        bsdf.inputs["Coat Weight"].default_value = preset["coat"]
+        bsdf.inputs["Coat Roughness"].default_value = 0.03
+        nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+        if preset["base"] is not None:
+            bsdf.inputs["Base Color"].default_value = (*preset["base"], 1.0)
+        elif image is not None:
+            tex = nt.nodes.new("ShaderNodeTexImage")
+            tex.image = image
+            coord = nt.nodes.new("ShaderNodeTexCoord")
+            nt.links.new(coord.outputs["UV"], tex.inputs["Vector"])
+            nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+        else:
+            bsdf.inputs["Base Color"].default_value = factor
+    print(f"[render] material={name}", flush=True)
+
+
+def _paint_bsdf(nt, value: float):
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    bsdf.inputs["Base Color"].default_value = (value, value, value, 1.0)
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Roughness"].default_value = 0.9
+    bsdf.inputs["Specular IOR Level"].default_value = 0.05
+    return bsdf
+
+
+def add_speckle_paint(obj, scale: float, seed: int, threshold: float):
+    """Print matte dark and light dots on top of whatever surface the object has.
+
+    Between the dots the original shader is untouched, so reflections stay.
+    """
+    if not obj.data.materials:
+        obj.data.materials.append(bpy.data.materials.new("speckle_base"))
+    for mat in obj.data.materials:
+        if mat is None:
+            continue
+        mat.use_nodes = True
+        nt = mat.node_tree
+        out = next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output), None)
+        out = out or next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"), None)
+        if out is None:
+            out = nt.nodes.new("ShaderNodeOutputMaterial")
+        surface = out.inputs["Surface"]
+        if surface.is_linked:
+            original = surface.links[0].from_socket
+        else:
+            original = _paint_bsdf(nt, 0.5).outputs["BSDF"]
+        coord = nt.nodes.new("ShaderNodeTexCoord")
+        mapping = nt.nodes.new("ShaderNodeMapping")
+        mapping.inputs["Location"].default_value = (0.17 * (seed + 1), 0.31 * (seed + 2), 0.47 * (seed + 3))
+        mapping.inputs["Scale"].default_value = (scale, scale, scale)
+        link(nt, coord.outputs["Object"], mapping.inputs["Vector"])
+        noise = nt.nodes.new("ShaderNodeTexNoise")
+        noise.noise_dimensions = "3D"
+        noise.noise_type = "FBM"
+        noise.inputs["Scale"].default_value = 1.0
+        noise.inputs["Detail"].default_value = 2.0
+        noise.inputs["Roughness"].default_value = 0.5
+        link(nt, mapping.outputs["Vector"], noise.inputs["Vector"])
+        edge = 0.01
+        dark = map_range(nt, noise.outputs["Factor"], 0.5 - threshold, 0.5 - threshold - edge, 0.0, 1.0)
+        light = map_range(nt, noise.outputs["Factor"], 0.5 + threshold, 0.5 + threshold + edge, 0.0, 1.0)
+        mix_dark = nt.nodes.new("ShaderNodeMixShader")
+        link(nt, dark, mix_dark.inputs["Fac"])
+        link(nt, original, mix_dark.inputs[1])
+        link(nt, _paint_bsdf(nt, 0.03).outputs["BSDF"], mix_dark.inputs[2])
+        mix_light = nt.nodes.new("ShaderNodeMixShader")
+        link(nt, light, mix_light.inputs["Fac"])
+        link(nt, mix_dark.outputs["Shader"], mix_light.inputs[1])
+        link(nt, _paint_bsdf(nt, 0.85).outputs["BSDF"], mix_light.inputs[2])
+        link(nt, mix_light.outputs["Shader"], surface)
+    print(f"[render] speckle paint scale={scale} threshold={threshold} seed={seed}", flush=True)
 
 
 def _object_space_fbm(nt, scale: float, seed: int):
@@ -710,14 +823,37 @@ def frame_size(args):
     return width, height
 
 
+def use_eevee(args) -> bool:
+    return str(args.engine).upper() in {"BLENDER_EEVEE", "EEVEE", "BLENDER_EEVEE_NEXT"}
+
+
 def setup_cycles(args):
     scene = bpy.context.scene
-    scene.render.engine = "CYCLES"
-    scene.cycles.samples = int(args.samples)
-    scene.cycles.use_denoising = bool(args.denoise)
-    if args.denoise:
-        scene.cycles.denoiser = "OPENIMAGEDENOISE"
-    scene.cycles.use_adaptive_sampling = True
+    if use_eevee(args):
+        scene.render.engine = "BLENDER_EEVEE"
+        ee = scene.eevee
+        ee.taa_render_samples = int(args.taa_samples)
+        ee.use_raytracing = bool(args.raytrace)
+        if args.raytrace:
+            ee.ray_tracing_method = "SCREEN"
+            rt = ee.ray_tracing_options
+            rt.resolution_scale = "1"
+            rt.screen_trace_quality = 1.0
+            rt.trace_max_roughness = 0.5
+            ee.use_fast_gi = True
+            ee.use_shadows = True
+            world = scene.world or bpy.data.worlds[0]
+            world.use_sun_shadow = True
+            world.probe_resolution = str(args.probe_resolution)
+        scene.render.film_transparent = bool(args.hdri)
+        print(f"[render] engine=EEVEE raytracing={'on' if args.raytrace else 'off'} taa={args.taa_samples}", flush=True)
+    else:
+        scene.render.engine = "CYCLES"
+        scene.cycles.samples = int(args.samples)
+        scene.cycles.use_denoising = bool(args.denoise)
+        if args.denoise:
+            scene.cycles.denoiser = "OPENIMAGEDENOISE"
+        scene.cycles.use_adaptive_sampling = True
     width, height = frame_size(args)
     scene.render.resolution_x = width
     scene.render.resolution_y = height
@@ -725,14 +861,15 @@ def setup_cycles(args):
     scene.render.image_settings.media_type = "IMAGE"
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGB"
-    scene.render.film_transparent = False
+    if not use_eevee(args):
+        scene.render.film_transparent = False
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "None"
     scene.display_settings.display_device = "sRGB"
 
     prefs = bpy.context.preferences.addons["cycles"].preferences
-    used_gpu = False
-    if args.device.upper() == "GPU":
+    used_gpu = use_eevee(args)
+    if (not use_eevee(args)) and args.device.upper() == "GPU":
         for compute in ("OPTIX", "CUDA"):
             try:
                 prefs.compute_device_type = compute
@@ -753,9 +890,12 @@ def setup_cycles(args):
         print("[render] Cycles device=CPU", flush=True)
 
     vl = scene.view_layers[0]
-    vl.use_pass_z = True
-    vl.use_pass_object_index = True
-    scene.render.use_compositing = True
+    if args.rgb_only:
+        scene.render.use_compositing = False
+    else:
+        vl.use_pass_z = True
+        vl.use_pass_object_index = True
+        scene.render.use_compositing = True
     scene.render.use_sequencer = False
     return scene
 
@@ -834,6 +974,71 @@ def load_exr_channel(path: Path) -> np.ndarray:
     return arr
 
 
+def _project_corners(cam, scene, corners):
+    bpy.context.view_layer.update()
+    world = np.array(cam.matrix_world, dtype=np.float64)
+    rotation = world[:3, :3] @ np.diag([1.0, -1.0, -1.0])
+    origin = world[:3, 3]
+    cam_pts = (corners - origin) @ rotation
+    depth = cam_pts[:, 2]
+    if np.any(depth <= 1e-4):
+        return None
+    intrinsics = camera_intrinsics(cam, scene)
+    x = intrinsics[0][0] * cam_pts[:, 0] / depth + intrinsics[0][2]
+    y = intrinsics[1][1] * cam_pts[:, 1] / depth + intrinsics[1][2]
+    return x, y
+
+
+def fit_radius_to_frame(cam, obj, args, scene):
+    """Place the longest projected side at frame_fill of the image height, without cropping."""
+    corners = np.array([obj.matrix_world @ Vector(corner) for corner in obj.bound_box], dtype=np.float64)
+    width = int(scene.render.resolution_x)
+    height = int(scene.render.resolution_y)
+    margin = 0.02 * min(width, height)
+    target = float(args.frame_fill)
+
+    def measure(radius):
+        args.radius = float(radius)
+        longest = 0.0
+        for frame in range(int(args.num_views)):
+            set_camera_on_trajectory(cam, frame, args)
+            projected = _project_corners(cam, scene, corners)
+            if projected is None:
+                return False, None
+            x, y = projected
+            inside = (
+                np.all(x >= margin)
+                and np.all(x <= width - margin)
+                and np.all(y >= margin)
+                and np.all(y <= height - margin)
+            )
+            if not inside:
+                return False, None
+            longest = max(longest, float(x.max() - x.min()), float(y.max() - y.min()))
+        return True, longest / height
+
+    near, far = 0.8, 40.0
+    fits, _fill = measure(far)
+    if not fits:
+        args.radius = far
+        print("[render] frame fit failed at far radius", flush=True)
+        return
+    for _ in range(22):
+        mid = 0.5 * (near + far)
+        fits, fill = measure(mid)
+        if fits and fill <= target:
+            far = mid
+        else:
+            near = mid
+    args.radius = far
+    fits, fill = measure(args.radius)
+    print(
+        f"[render] frame fill target={target:.3f} achieved={0.0 if fill is None else fill:.3f} "
+        f"radius={args.radius:.3f}",
+        flush=True,
+    )
+
+
 def export_mesh(obj, path: Path):
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
@@ -852,11 +1057,13 @@ def main():
         args.texture = str(Path(args.texture).resolve())
     out_dir = Path(args.output_dir)
     rgb_dir = out_dir / "rgb"
+    rgb_dir.mkdir(parents=True, exist_ok=True)
     depth_dir = out_dir / "depth"
     mask_dir = out_dir / "mask"
     tmp_dir = out_dir / "_tmp_passes"
-    for d in (rgb_dir, depth_dir, mask_dir, tmp_dir):
-        d.mkdir(parents=True, exist_ok=True)
+    if not args.rgb_only:
+        for d in (depth_dir, mask_dir, tmp_dir):
+            d.mkdir(parents=True, exist_ok=True)
 
     reset_scene()
     glb = bool(args.mesh) and Path(args.mesh).suffix.lower() in {".glb", ".gltf"}
@@ -866,7 +1073,9 @@ def main():
         if args.object not in OBJECT_BUILDERS:
             raise KeyError(f"unknown primitive object {args.object}; pass --mesh for scanned assets")
         obj = OBJECT_BUILDERS[args.object]()
-    if glb and args.pattern == "P0":
+    if args.material:
+        apply_material_preset(obj, args.material)
+    elif glb and args.pattern == "P0":
         simplify_to_matte_albedo(obj)
     elif glb and args.pattern == "P4":
         overlay_p4_on_materials(obj, args.alpha, args.scale, args.seed)
@@ -874,6 +1083,8 @@ def main():
         mat = make_material(args.pattern, args.alpha, args.scale, args.seed, texture_path=args.texture)
         obj.data.materials.clear()
         obj.data.materials.append(mat)
+    if args.speckle:
+        add_speckle_paint(obj, args.speckle_scale, args.seed, args.speckle_threshold)
 
     if args.hdri:
         setup_world_black_hdri(args.hdri, args.hdri_rotation_deg, args.hdri_strength)
@@ -894,7 +1105,10 @@ def main():
     cam.data.clip_start = args.clip_start
     cam.data.clip_end = args.clip_end
     scene.camera = cam
-    setup_compositor(scene, tmp_dir)
+    if args.frame_fill > 0:
+        fit_radius_to_frame(cam, obj, args, scene)
+    if not args.rgb_only:
+        setup_compositor(scene, tmp_dir)
 
     frames = []
     K = None
@@ -909,17 +1123,18 @@ def main():
         scene.render.filepath = str(rgb_path.with_suffix(""))
         bpy.ops.render.render(write_still=True)
 
-        depth_exr = tmp_dir / "passdepth.exr"
-        mask_exr = tmp_dir / "passmask.exr"
-        if not depth_exr.exists() or not mask_exr.exists():
-            raise FileNotFoundError(f"missing compositor EXR for frame {t}: {list(tmp_dir.iterdir())}")
-        depth = load_exr_channel(depth_exr)
-        mask = load_exr_channel(mask_exr)
-        depth[~np.isfinite(depth)] = 0.0
-        depth[depth > 1.0e8] = 0.0
-        mask_u8 = (mask > 0.5).astype(np.uint8) * 255
-        np.save(depth_dir / f"{t:04d}.npy", depth.astype(np.float32))
-        np.save(mask_dir / f"{t:04d}.npy", mask_u8)
+        if not args.rgb_only:
+            depth_exr = tmp_dir / "passdepth.exr"
+            mask_exr = tmp_dir / "passmask.exr"
+            if not depth_exr.exists() or not mask_exr.exists():
+                raise FileNotFoundError(f"missing compositor EXR for frame {t}: {list(tmp_dir.iterdir())}")
+            depth = load_exr_channel(depth_exr)
+            mask = load_exr_channel(mask_exr)
+            depth[~np.isfinite(depth)] = 0.0
+            depth[depth > 1.0e8] = 0.0
+            mask_u8 = (mask > 0.5).astype(np.uint8) * 255
+            np.save(depth_dir / f"{t:04d}.npy", depth.astype(np.float32))
+            np.save(mask_dir / f"{t:04d}.npy", mask_u8)
 
         frames.append(
             {
@@ -939,6 +1154,12 @@ def main():
         "K": K,
         "object": args.object,
         "pattern": args.pattern,
+        "material": args.material,
+        "speckle": bool(args.speckle),
+        "speckle_scale": args.speckle_scale,
+        "speckle_threshold": args.speckle_threshold,
+        "engine": scene.render.engine,
+        "raytrace": bool(args.raytrace),
         "alpha": args.alpha,
         "scale": args.scale,
         "seed": args.seed,
@@ -959,12 +1180,13 @@ def main():
     with open(out_dir / "camera_gt.json", "w", encoding="utf-8") as f:
         json.dump(camera_gt, f, indent=2)
 
-    if args.write_geometry:
+    if args.write_geometry and not args.rgb_only:
         export_mesh(obj, out_dir / "mesh.obj")
 
-    for p in tmp_dir.glob("*"):
-        p.unlink()
-    tmp_dir.rmdir()
+    if not args.rgb_only:
+        for p in tmp_dir.glob("*"):
+            p.unlink()
+        tmp_dir.rmdir()
     print("[render] done", out_dir, flush=True)
 
 

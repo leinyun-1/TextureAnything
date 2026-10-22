@@ -88,7 +88,7 @@ def render_variant(args, render_cfg, patterns_cfg, obj_name: str, pattern_id: st
         "--seed",
         str(args.seed),
         "--engine",
-        str(render_cfg.get("engine", "CYCLES")),
+        str(extra.get("engine") or render_cfg.get("engine", "CYCLES")),
         "--device",
         str(render_cfg.get("device", "GPU")),
         "--lens_mm",
@@ -111,6 +111,8 @@ def render_variant(args, render_cfg, patterns_cfg, obj_name: str, pattern_id: st
         str(extra.get("hdri_rotation_deg", 0.0)),
         "--hdri_strength",
         str(extra.get("hdri_strength", 1.0)),
+        "--frame_fill",
+        str(extra.get("frame_fill", 0.0)),
         "--world_gray",
         str(render_cfg.get("world_gray", 0.22)),
         "--key_light_energy",
@@ -142,6 +144,19 @@ def render_variant(args, render_cfg, patterns_cfg, obj_name: str, pattern_id: st
     ]
     if extra.get("denoise"):
         cmd.append("--denoise")
+    if extra.get("rgb_only"):
+        cmd.append("--rgb_only")
+    if extra.get("material"):
+        cmd.extend(["--material", str(extra["material"])])
+    if extra.get("raytrace"):
+        cmd.append("--raytrace")
+    if extra.get("speckle"):
+        cmd.append("--speckle")
+        for key in ("speckle_scale", "speckle_threshold"):
+            if key in extra:
+                cmd.extend([f"--{key}", str(extra[key])])
+    if extra.get("taa_samples"):
+        cmd.extend(["--taa_samples", str(int(extra["taa_samples"]))])
     if pattern_id == "P0":
         cmd.append("--write_geometry")
     if mesh:
@@ -149,7 +164,8 @@ def render_variant(args, render_cfg, patterns_cfg, obj_name: str, pattern_id: st
     if texture:
         cmd.extend(["--texture", str(texture)])
     run(cmd)
-    write_mask_pngs(out_dir)
+    if not extra.get("rgb_only"):
+        write_mask_pngs(out_dir)
 
 
 def parse_args():
